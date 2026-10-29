@@ -2,12 +2,65 @@
   {
     "name": "week",
     "title": "This week",
-    "subtitle": "Contact Centre Scheduling for Claude Code: what needs attention, rendered by npm run view",
+    "subtitle": "Contact Centre Scheduling for Claude Code: gaps, leave, rule checks and adherence, rendered by npm run view",
     "sections": [
       {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "title": "Coverage gaps, next seven days",
+        "note": "Half hours where agents on the phone fall below the agents needed for the service level target. Gap is agents on the phone minus agents needed.",
+        "sql": "select queue, to_char(starts_at::date, 'Dy DD Mon') as day, count(*)::int short_half_hours, min(gap) worst_gap, (array_agg(to_char(starts_at, 'HH24:MI') order by gap, starts_at))[1] worst_at, min(projected_sl_pct) lowest_projected_sl from wfm.coverage where gap < 0 and starts_at::date between current_date and current_date + 6 group by queue, starts_at::date order by starts_at::date, queue"
+      },
+      {
+        "title": "Leave waiting for a decision",
+        "note": "Newly short counts the half hours that would fall below requirement if the request is approved as the roster stands.",
+        "sql": "select code, name, queue, kind, starts_on, ends_on, current_date - requested_on days_waiting, newly_short, already_short from wfm.leave_impact order by newly_short desc, starts_on"
+      },
+      {
+        "title": "Rule checks",
+        "note": "Each finding cites its rule in docs/compliance.md. A finding is a prompt to check, not legal advice.",
+        "sql": "select rule, shift, agent, work_date, detail from wfm.compliance_findings order by work_date, rule"
+      },
+      {
+        "title": "Adherence, last seven days",
+        "sql": "select agent, name, team, days, adherence_pct, worst_day_pct from wfm.adherence_week order by adherence_pct"
+      },
+      {
+        "title": "Forecast accuracy, last 28 days",
+        "note": "Daily volume against what the six week pattern would have predicted. MAPE is the average miss.",
+        "sql": "select queue, days, mape_pct, bias_pct, worst_day from wfm.forecast_accuracy order by queue"
+      }
+    ]
+  },
+  {
+    "name": "today",
+    "title": "Today",
+    "subtitle": "Actual against forecast so far, and the plan for the rest of the day",
+    "sections": [
+      {
+        "title": "Half hours so far",
+        "sql": "select q.code queue, to_char(i.starts_at, 'HH24:MI') as time, i.offered, round(c.calls)::int forecast, round(100.0 * i.answered_in_sl / nullif(i.offered, 0), 1) sl_pct, i.abandoned, i.aht_seconds aht, c.scheduled agents_on_phone from wfm.intervals i join wfm.queues q on q.id = i.queue_id left join wfm.coverage c on c.queue_id = i.queue_id and c.starts_at = i.starts_at where i.starts_at::date = current_date order by q.code, i.starts_at"
+      },
+      {
+        "title": "Rest of today on plan",
+        "sql": "select queue, to_char(starts_at, 'HH24:MI') as time, calls, required, scheduled, gap, projected_sl_pct from wfm.coverage c where starts_at::date = current_date and not exists (select 1 from wfm.intervals i where i.queue_id = c.queue_id and i.starts_at = c.starts_at) order by queue, starts_at"
+      }
+    ]
+  },
+  {
+    "name": "forecast",
+    "title": "Forecast, next fourteen days",
+    "subtitle": "Daily contacts and peak agents needed by queue",
+    "sections": [
+      {
+        "title": "By day",
+        "sql": "select queue, to_char(starts_at::date, 'Dy DD Mon') as day, round(sum(calls))::int contacts, max(required) peak_agents_needed, round(sum(required) / 2.0, 1) agent_hours_needed, round(sum(scheduled) / 2.0, 1) agent_hours_on_phone from wfm.coverage group by queue, starts_at::date order by queue, starts_at::date"
+      },
+      {
+        "title": "Planner adjustments",
+        "sql": "select f.code, q.code queue, f.starts_at, f.ends_at, f.volume_pct, f.reason from wfm.forecast_adjustments f join wfm.queues q on q.id = f.queue_id order by f.starts_at"
+      },
+      {
+        "title": "History days far from pattern",
+        "sql": "select queue, day, offered, typical, variance_pct, excluded from wfm.history_outliers order by day"
       }
     ]
   }

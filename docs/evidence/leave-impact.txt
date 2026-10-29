@@ -1,0 +1,5 @@
+  code    agent  name           queue  kind    starts on   ends on     days waiting  newly short  already short  verdict                   
+  ------  -----  -------------  -----  ------  ----------  ----------  ------------  -----------  -------------  --------------------------
+  LV-004  C04    Mei Chen       CLM    annual  2026-11-04  2026-11-04             6            5              6  approving opens new gaps  
+  LV-001  G02    Ben Whitfield  GEN    annual  2026-11-02  2026-11-02             3            4              4  approving opens new gaps  
+  LV-003  E01    Rangi Tuhoe    EML    annual  2026-11-28  2026-12-02             2            0              0  beyond the 14 day forecast

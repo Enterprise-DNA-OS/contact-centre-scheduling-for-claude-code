@@ -1,0 +1,12 @@
+  rule                shift         agent  work date   detail                                                               
+  ------------------  ------------  -----  ----------  ---------------------------------------------------------------------
+  roster-unpublished  E03-20261029  E03    2026-10-29  draft shift starts 2026-10-29 08:30:00                               
+  au-meal-5h          C02-20261030  C02    2026-10-30  330 minutes worked without a meal break                              
+  au-part-time-3h     C05-20261030  C05    2026-10-30  part-time shift of 150 minutes                                       
+  nz-breaks           G04-20261030  G04    2026-10-30  8.5 hour work period has 1 rest and 1 meal breaks; minimum is 2 and 1
+  roster-unpublished  E03-20261030  E03    2026-10-30  draft shift starts 2026-10-30 08:30:00                               
+  au-roster-notice    C01-20261102  C01    2026-11-02  notice change made 112 hours before the shift                        
+  roster-unpublished  E03-20261102  E03    2026-11-02  draft shift starts 2026-11-02 08:30:00                               
+  au-10h-rest         C03-20261103  C03    2026-11-03  9.0 hours off before this shift                                      
+  roster-unpublished  E03-20261103  E03    2026-11-03  draft shift starts 2026-11-03 08:30:00                               
+  roster-unpublished  E03-20261104  E03    2026-11-04  draft shift starts 2026-11-04 08:30:00                               

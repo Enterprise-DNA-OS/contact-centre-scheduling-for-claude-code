@@ -1,24 +1,25 @@
 # Why there is no front end
 
-Verint Workforce Management is a database with a subscription. The tables underneath it are ordinary: a few entities, a few relationships, a handful of workflows you repeat every week. What you pay for is the layer on top that lets people who do not write SQL get at those tables. Screens, filters, dashboards, forms.
+A workforce management suite is a forecast, a set of rosters and a few rules, wrapped in screens. The arithmetic underneath is public and old: Erlang C dates from 1917. What a planner pays for is the layer that lets them see the half hours and drag shifts around.
 
-That layer used to be the whole product, because talking to a database was hard. It is not hard any more. Open this folder in Claude Code, describe what you want, and it writes the query, runs it, and explains the answer. Ask a question the dashboard never had a chart for and you still get an answer.
+Here the half hours are a question you ask. "Where are we short next Monday?" runs the same Erlang C calculation against your own history and roster, in your database, and answers in a table you can print.
 
 ## What you gain
 
-- **Better answers.** A dashboard shows what the vendor decided to chart. Here you ask your own question, in your own words, and get it answered against your own data.
-- **No seats.** Everyone who needs to look can look. The bill does not grow with headcount.
-- **Your data in your Postgres.** Plain tables. Back them up, query them from anything, leave any time. There is no export step because there is nothing to leave.
-- **A process that matches you.** When your way of working changes, you add a command. You do not wait for a feature request to clear.
+- **Questions in your words.** "If I approve Ben's leave, which half hours go short?" is one ask, not a report to configure.
+- **No per-agent licence.** Every planner and team leader can ask. The bill does not grow with headcount.
+- **Your history in your database.** Interval data, rosters and changes are plain records you keep when you leave.
+- **Rules you can read.** The break and notice checks are written out with their sources in docs/compliance.md.
 
-## What you give up
+## What a screen gives that this does not
 
-- **A visual board.** Stages are a table you ask about, not cards you drag.
-- **A phone app.** It runs where Claude Code runs.
-- **A vendor help desk.** This is open source. Enterprise DNA supports the installed version for businesses that want someone to call.
+- **A drag and drop roster board.** Shifts move by asking, one at a time or by pattern.
+- **An agent app.** Agents do not see their roster, bid for shifts or swap here. Rosters go out as drafts you send.
+- **Live adherence.** This base reads adherence a day at a time from a file, not second by second.
+- **Automatic schedule optimisation.** It finds the gaps and who has hours. A planner decides the fix.
 
 ## Who this fits
 
-Small teams who already use Claude Code, or who would rather learn to ask than learn another interface. If your team needs a screen to look at all day, keep Verint Workforce Management. If you need the answers more than the screens, this is cheaper, faster and yours.
+Centres from about 10 to 150 agents, with one or two planners who already live in spreadsheets around their WFM tool. If your centre runs complex multi-skill routing across hundreds of agents and needs optimised schedules every week, keep the suite, or have Enterprise DNA build those parts in.
 
 Installed and run for you: https://enterprisedna.co/omni/instead-of/verint-workforce-management

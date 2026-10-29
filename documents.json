@@ -1,11 +1,58 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "agent-roster",
+    "title": "Roster, next two weeks",
+    "for_each": "select a.id, a.code || ' ' || a.name as label from wfm.agents a where a.active and exists (select 1 from wfm.shifts s where s.agent_id = a.id and s.status = 'published' and s.starts_at::date >= current_date) order by a.code",
+    "file": "label",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "Agent",
+        "layout": "record",
+        "sql": "select a.name, a.code agent_id, a.team, q.name queue, replace(a.employment, '_', ' ') employment from wfm.agents a join wfm.queues q on q.id = a.queue_id where a.id = $1"
+      },
+      {
+        "title": "Shifts",
+        "note": "Published shifts change only with notice or by agreement. Draft shifts are shown for planning and may still change.",
+        "sql": "select to_char(s.starts_at, 'Dy DD Mon') as day, to_char(s.starts_at, 'HH24:MI') starts, to_char(s.ends_at, 'HH24:MI') finishes, s.status, coalesce((select string_agg(x.kind || ' ' || to_char(x.starts_at, 'HH24:MI') || '-' || to_char(x.ends_at, 'HH24:MI'), ', ' order by x.starts_at) from wfm.activities x where x.shift_id = s.id), '') breaks_and_sessions from wfm.shifts s where s.agent_id = $1 and s.status <> 'cancelled' and s.starts_at::date between current_date and current_date + 13 and not exists (select 1 from wfm.leave_requests l where l.agent_id = s.agent_id and l.status = 'approved' and s.starts_at::date between l.starts_on and l.ends_on) order by s.starts_at"
+      },
+      {
+        "title": "Approved leave",
+        "sql": "select kind, starts_on, ends_on from wfm.leave_requests where agent_id = $1 and status = 'approved' and ends_on >= current_date order by starts_on"
+      }
+    ]
+  },
+  {
+    "name": "staffing-plan",
+    "title": "Staffing plan",
+    "for_each": "select id, code || ' ' || name as label from wfm.queues order by code",
+    "file": "label",
+    "sections": [
+      {
+        "title": "Service settings",
+        "layout": "record",
+        "sql": "select name, channel, sl_target_pct || '% in ' || sl_seconds || ' seconds' service_level_target, max_occupancy_pct || '%' maximum_occupancy, shrinkage_pct || '%' shrinkage_budget, to_char(opens, 'HH24:MI') || ' to ' || to_char(closes, 'HH24:MI') hours from wfm.queues where id = $1"
+      },
+      {
+        "title": "Next fourteen days",
+        "sql": "select to_char(starts_at::date, 'Dy DD Mon') as day, round(sum(calls))::int contacts_forecast, max(required) peak_agents_needed, round(sum(required) / 2.0, 1) agent_hours_needed, round(sum(scheduled) / 2.0, 1) agent_hours_rostered_on_phone, count(*) filter (where gap < 0)::int short_half_hours from wfm.coverage where queue_id = $1 group by starts_at::date order by starts_at::date"
+      },
+      {
+        "title": "Short half hours, next seven days",
+        "sql": "select to_char(starts_at, 'Dy DD Mon HH24:MI') as half_hour, calls, required, scheduled, gap, projected_sl_pct from wfm.coverage where queue_id = $1 and gap < 0 and starts_at::date between current_date and current_date + 6 order by starts_at"
+      }
+    ]
+  },
+  {
+    "name": "roster-change-notice",
+    "title": "Roster change notice",
+    "for_each": "select c.id, s.code as label from wfm.shift_changes c join wfm.shifts s on s.id = c.shift_id order by c.changed_at",
+    "file": "label",
+    "sections": [
+      {
+        "title": "Change",
+        "layout": "record",
+        "sql": "select a.name agent, a.code agent_id, to_char(c.old_starts_at, 'Dy DD Mon HH24:MI') || ' to ' || to_char(c.old_ends_at, 'HH24:MI') was_rostered, to_char(c.new_starts_at, 'Dy DD Mon HH24:MI') || ' to ' || to_char(c.new_ends_at, 'HH24:MI') now_rostered, c.basis, round(extract(epoch from least(c.old_starts_at, c.new_starts_at) - c.changed_at) / 3600)::int hours_notice, c.reason, c.changed_by from wfm.shift_changes c join wfm.shifts s on s.id = c.shift_id join wfm.agents a on a.id = s.agent_id where c.id = $1"
+      }
     ]
   }
 ]
